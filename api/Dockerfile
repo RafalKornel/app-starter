@@ -15,9 +15,6 @@ COPY . .
 
 EXPOSE ${PORT}
 
-CMD ["npm", "run", "api:dev"]
-
-
 # === Development stage ===
 FROM base AS dev
 

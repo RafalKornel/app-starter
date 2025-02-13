@@ -1,26 +1,32 @@
-# client/Dockerfile
+ARG NODE_VERSION=20.16.0
 
-# === Base stage: common dependencies ===
-FROM node:16-alpine AS base
+FROM node:${NODE_VERSION}-alpine AS base
+
+ARG PORT=5174
+
+ARG NODE_ENV=development
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
 COPY . .
 
 # === Development stage ===
 FROM base AS dev
-EXPOSE 3000
-# Assumes "npm start" runs the development server with hot reloading
-CMD ["npm", "start"]
+
+EXPOSE ${PORT}
+
+CMD ["npm", "run", "dev"]
 
 # === Build stage for production ===
 FROM base AS build
-# Build the static production bundle
+
 RUN npm run build
 
 # === Production serve stage ===
 FROM nginx:alpine AS prod
-# Copy the production build from the builder stage into nginx's public folder
+
 COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
