@@ -17,7 +17,8 @@ const config: TypeOrmModuleOptions = {
   database: process.env.POSTGRES_DB,
   autoLoadEntities: true,
   synchronize: process.env.NODE_ENV === 'development',
-  migrations: [__dirname + '/../migrations/**/*.ts'],
+  migrations: [__dirname + '/../database/migrations/**/*.ts'],
+  entities: [__dirname + '/../database/entities/**/*.entity.ts'],
 };
 
 export default registerAs(TYPEORM_CONFIG_KEY, () => config);
