@@ -7,10 +7,12 @@ import { UsersModule } from '../users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guards/auth.guard';
+import { UserEntity } from 'src/database/entities/user.entity';
+import { AuthEntity } from 'src/database/entities/auth.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([UserEntity, AuthEntity]),
     UsersModule,
     ConfigModule,
     JwtModule.registerAsync({
