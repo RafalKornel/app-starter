@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import typeorm, { TYPEORM_CONFIG_KEY } from './config/typeorm';
 import { CoffeeModule } from './modules/coffee/coffee.module';
 import { validate } from './config/env.validation';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { validate } from './config/env.validation';
         configService.getOrThrow(TYPEORM_CONFIG_KEY),
     }),
     CoffeeModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

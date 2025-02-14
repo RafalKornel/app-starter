@@ -11,14 +11,15 @@ async function bootstrap() {
       .setTitle('API documentation')
       .setDescription('TheAPI description')
       .setVersion('1.0')
+      .addBearerAuth({ name: 'Authorization', type: 'http' })
+      .addSecurityRequirements('bearer')
       .build();
 
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, documentFactory);
 
-    app.enableCors({origin: `http://localhost:${process.env.CLIENT_PORT}` })
+    app.enableCors({ origin: `http://localhost:${process.env.CLIENT_PORT}` });
   }
-
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -7,12 +7,15 @@ import {
   IsEnum as IsEnumInternal,
   IsBoolean as IsBooleanInternal,
   IsDate as IsDateInternal,
+  IsEmail as IsEmailInternal,
   ValidateNested,
   IsOptional,
 } from 'class-validator';
 
 export const IsString = () =>
   applyDecorators(IsStringInternal(), ApiProperty());
+
+export const IsEmail = () => applyDecorators(IsEmailInternal(), ApiProperty());
 
 export const IsNumber = () =>
   applyDecorators(IsNumberInternal(), ApiProperty());
