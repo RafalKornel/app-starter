@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { TooltipWithIcon } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { useRegister } from "../hooks/useRegister";
+import { toast, Toaster } from "sonner";
 
 const FormSchema = z
   .object({
@@ -49,15 +52,28 @@ export function RegisterForm() {
     },
   });
 
+  const registerMutation = useRegister();
+
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+    registerMutation
+      .mutateAsync(data)
+      .then((res) => {
+        toast("Success!", {
+          description: `Created new account with email ${res.email} and username ${res.username}`,
+        });
+      })
+      .catch((e) => {
+        console.log("caught error: ", e);
+
+        toast("Error", { description: e.message });
+      });
   }
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-2/3 space-y-6 flex flex-col"
+        className="space-y-6 flex flex-col"
       >
         <FormField
           control={form.control}
@@ -134,7 +150,9 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
+        <Button type="submit">Register</Button>
       </form>
+      <Toaster />
     </Form>
   );
 }

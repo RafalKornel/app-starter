@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import {
   Form,
   FormControl,
@@ -11,6 +10,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast, Toaster } from "sonner";
+import { useLogIn } from "../hooks/useLogIn";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -20,16 +22,28 @@ const FormSchema = z.object({
 });
 
 export function LoginForm() {
+  const logInMutation = useLogIn();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "example@email.com",
+      password: "password",
     },
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+    logInMutation
+      .mutateAsync(data)
+      .then((res) => {
+        console.log(res.access_token);
+        localStorage.setItem("access_token", res.access_token);
+      })
+      .catch((e) => {
+        console.log("caught error: ", e);
+
+        toast("Error", { description: e.message });
+      });
   }
 
   return (
@@ -66,7 +80,11 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        <Button type="submit" disabled={logInMutation.isPending}>
+          Log In
+        </Button>
       </form>
+      <Toaster />
     </Form>
   );
 }

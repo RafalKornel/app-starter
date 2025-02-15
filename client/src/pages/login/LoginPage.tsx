@@ -30,9 +30,6 @@ export function LoginPage() {
                 <CardContent>
                   <LoginForm />
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit">Submit</Button>
-                </CardFooter>
               </Card>
             </TabsContent>
 
@@ -44,9 +41,6 @@ export function LoginPage() {
                 <CardContent>
                   <RegisterForm />
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit">Submit</Button>
-                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>
