@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:latest
@@ -40,6 +38,13 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:latest
+    ports:
+      - 1025:1025
+      - 8025:8025
 
   client:
     build:

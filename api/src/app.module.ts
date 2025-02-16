@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import typeorm, { TYPEORM_CONFIG_KEY } from './config/typeorm';
 import { CoffeeModule } from './modules/coffee/coffee.module';
-import { validate } from './config/env.validation';
+import { EnvironmentConfig } from './config/config.types';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -13,7 +13,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate,
+      validate: EnvironmentConfig.validate,
       load: [typeorm],
     }),
     TypeOrmModule.forRootAsync({
