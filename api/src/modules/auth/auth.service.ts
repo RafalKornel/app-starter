@@ -6,6 +6,11 @@ import * as bcrypt from 'bcrypt';
 import { EntityManager } from 'typeorm';
 import { UserEntity } from 'src/database/entities/user.entity';
 import { AuthEntity } from 'src/database/entities/auth.entity';
+import { EnvironmentConfig } from 'src/config/config.types';
+import { randomUUID, UUID } from 'crypto';
+import { RefreshTokenRevokedError } from './errors/refresh-token-revoked.error';
+
+type RefreshTokenJWTPayload = JwtPayload & { refreshTokenUuid: string };
 
 @Injectable()
 export class AuthService {
@@ -13,6 +18,7 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly config: EnvironmentConfig,
     private readonly entityManager: EntityManager,
   ) {}
 
@@ -35,11 +41,73 @@ export class AuthService {
       throw new UnauthorizedException('Email or password incorrect.');
     }
 
-    const payload: JwtPayload = { sub: user.id, username: user.username };
+    const accessToken = await this.signAccessToken({
+      sub: user.id,
+      username: user.username,
+    });
 
-    const access_token = await this.jwtService.signAsync(payload);
+    const refreshTokenUuid = randomUUID();
+    const refreshToken = await this.signRefreshToken({
+      sub: user.id,
+      username: user.username,
+      refreshTokenUuid,
+    });
 
-    return { access_token };
+    user.auth.activeRefreshTokenUuid = refreshTokenUuid;
+
+    await this.entityManager.getRepository(AuthEntity).save(user.auth);
+
+    return { accessToken, refreshToken };
+  }
+
+  public async logout(userId: number) {
+    const user = await this.entityManager.getRepository(UserEntity).findOne({
+      where: { id: userId },
+      relations: { auth: true },
+    });
+
+    if (!user) {
+      throw new Error('Could not find user with given id.');
+    }
+
+    if (!user.auth.activeRefreshTokenUuid) {
+      throw new Error('User is not logged in.');
+    }
+
+    user.auth.activeRefreshTokenUuid = null;
+
+    await this.entityManager.getRepository(AuthEntity).save(user.auth);
+  }
+
+  public async refreshAccessToken(refreshToken: string) {
+    const { refreshTokenUuid, sub, username } =
+      await this.verifyRefreshToken(refreshToken);
+
+    const auth = await this.entityManager
+      .getRepository(AuthEntity)
+      .findOne({ where: { activeRefreshTokenUuid: refreshTokenUuid } });
+
+    if (!auth) {
+      throw new RefreshTokenRevokedError();
+    }
+
+    const accessToken = await this.signAccessToken({ sub, username });
+
+    return accessToken;
+  }
+
+  public async revokeToken(tokenId: UUID) {
+    const auth = await this.entityManager
+      .getRepository(AuthEntity)
+      .findOne({ where: { activeRefreshTokenUuid: tokenId } });
+
+    if (!auth) {
+      throw new Error('Token id invalid.');
+    }
+
+    auth.activeRefreshTokenUuid = null;
+
+    await this.entityManager.getRepository(AuthEntity).save(auth);
   }
 
   public async register(registerDto: RegisterDto) {
@@ -75,5 +143,23 @@ export class AuthService {
 
   private async comparePassword(password: string, hash: string) {
     return await bcrypt.compare(password, hash);
+  }
+
+  private async signAccessToken(payload: JwtPayload) {
+    return await this.jwtService.signAsync(payload);
+  }
+
+  private async signRefreshToken(payload: RefreshTokenJWTPayload) {
+    return await this.jwtService.signAsync(payload, {
+      expiresIn: this.config.JWT_REFRESH_TIME,
+    });
+  }
+
+  private async verifyRefreshToken(
+    token: string,
+  ): Promise<RefreshTokenJWTPayload> {
+    return await this.jwtService.verifyAsync(token, {
+      secret: this.config.JWT_ACCESS_SECRET,
+    });
   }
 }

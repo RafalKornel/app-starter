@@ -18,4 +18,7 @@ export class AuthEntity {
 
   @Column()
   passwordHash: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  activeRefreshTokenUuid?: string | null;
 }
