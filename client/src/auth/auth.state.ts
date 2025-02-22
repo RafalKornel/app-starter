@@ -1,6 +1,6 @@
 import { authApi, Profile } from "@/services/auth.api";
-import { redirect } from "@tanstack/react-router";
 import { create } from "zustand";
+import { refreshTokenRevokedChannel } from "./refresh-token-revoked.channel";
 
 interface AuthStore {
   profile: Profile | null;
@@ -10,10 +10,10 @@ interface AuthStore {
 }
 
 export const useAuth = create<AuthStore>((set, get) => ({
-  profile: null,
   logIn: (p: Profile) => set({ profile: p }),
   logOut: () => set({ profile: null }),
 
+  profile: null,
   loadProfile: async () => {
     const { profile, logIn } = get();
 
@@ -21,19 +21,16 @@ export const useAuth = create<AuthStore>((set, get) => ({
       return;
     }
 
-    await authApi
-      .getProfile()
-      .then((res) => {
-        if (res) {
-          logIn(res);
-        } else {
-          throw new Error("Not authorized");
-        }
-      })
-      .catch(() => {
-        throw redirect({ to: "/login" });
-      });
+    await authApi.getProfile().then((res) => {
+      if (res) {
+        logIn(res);
+      } else {
+        throw new Error("Not authorized");
+      }
+    });
   },
 }));
 
-export const getBeforeLoadAuthGuard = () => useAuth.getState().loadProfile;
+refreshTokenRevokedChannel.subscribe(() => {
+  useAuth.getState().logOut();
+});

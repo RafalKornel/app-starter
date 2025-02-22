@@ -1,22 +1,30 @@
-import { PropsWithChildren } from "react";
-import { useProfile } from "../hooks/useProfile";
-import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "../auth.state";
+import { Outlet, Navigate, useLocation, useNavigate } from "react-router";
+import { LocalStorageService } from "@/services/local-storage";
+import { RouteKeys } from "@/routes/route-keys";
 
-export const LoginGuard = ({ children }: PropsWithChildren<{}>) => {
-  const profileQuery = useProfile();
+export const LoginGuard = () => {
+  const navigate = useNavigate();
 
-  console.log(profileQuery.data);
+  const location = useLocation();
 
-  const nav = useNavigate();
+  const { profile, loadProfile } = useAuth();
 
-  if (profileQuery.status === "pending") {
-    return <div>Loading...</div>;
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadProfile()
+      .catch(() => navigate(RouteKeys.Login))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  if (!profile && !isLoading) {
+    LocalStorageService.set("redirect-to", location.pathname);
+
+    return <Navigate to={RouteKeys.Login} />;
   }
 
-  if (profileQuery.error) {
-    nav({ to: "/login" });
-    return null;
-  }
-
-  return <>{children}</>;
+  return <Outlet />;
 };

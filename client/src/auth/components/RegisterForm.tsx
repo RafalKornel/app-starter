@@ -14,8 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { TooltipWithIcon } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { useRegister } from "../../../auth/hooks/useRegister";
 import { toast, Toaster } from "sonner";
+import { useRegister } from "../hooks/useRegister";
 
 const FormSchema = z
   .object({

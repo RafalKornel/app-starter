@@ -1,3 +1,4 @@
+import { refreshTokenRevokedChannel } from "@/auth/refresh-token-revoked.channel";
 import { ApiClient } from "./api";
 
 export interface LoginBody {
@@ -71,11 +72,11 @@ class AuthApi extends ApiClient {
         "POST"
       );
 
-      // if ()
-
       this.setAccessToken(accessToken);
     } catch (e) {
-      // handle error
+      this.clearToken();
+
+      refreshTokenRevokedChannel.emit();
     }
   }
 
@@ -88,9 +89,7 @@ class AuthApi extends ApiClient {
   }
 
   public async getProfile() {
-    return this.fetch<Profile>("/auth/profile", "GET").catch((e) => {
-      console.log(e);
-    });
+    return this.fetch<Profile>("/auth/profile", "GET");
   }
 }
 

@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
-import { useLogIn } from "../../../auth/hooks/useLogIn";
+import { useLogIn } from "../hooks/useLogIn";
 
 const FormSchema = z.object({
   email: z.string().email(),

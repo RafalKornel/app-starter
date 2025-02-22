@@ -1,3 +1,6 @@
+import { UnauthorizedException } from "./interfaces";
+import { LocalStorageService } from "./local-storage";
+
 export interface ApiError {
   error: string;
   message: string;
@@ -7,8 +10,6 @@ export interface ApiError {
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export class ApiClient {
-  private static ACCESS_TOKEN_LOCALSTORAGE_KEY = "accessToken";
-
   private readonly url: string;
 
   constructor() {
@@ -20,7 +21,7 @@ export class ApiClient {
 
   protected async fetch<
     TResponse extends Record<string, any> = any,
-    TBody extends Record<string, any> = any,
+    TBody extends Record<string, any> = any
   >(endpoint: string, method: Method, body?: TBody) {
     const res = await fetch(this.url + endpoint, {
       method,
@@ -36,6 +37,7 @@ export class ApiClient {
 
     if (res.status === 401) {
       this.clearToken();
+      throw new UnauthorizedException();
     }
 
     try {
@@ -52,14 +54,14 @@ export class ApiClient {
   }
 
   get accessToken(): string | null {
-    return localStorage.getItem(ApiClient.ACCESS_TOKEN_LOCALSTORAGE_KEY);
+    return LocalStorageService.get("access_token");
   }
 
   public clearToken() {
-    localStorage.removeItem(ApiClient.ACCESS_TOKEN_LOCALSTORAGE_KEY);
+    LocalStorageService.remove("access_token");
   }
 
   protected setAccessToken(token: string) {
-    localStorage.setItem(ApiClient.ACCESS_TOKEN_LOCALSTORAGE_KEY, token);
+    LocalStorageService.set("access_token", token);
   }
 }
