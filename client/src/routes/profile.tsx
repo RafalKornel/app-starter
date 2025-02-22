@@ -1,10 +1,10 @@
-import { useAuth } from "@/auth/auth.state";
+import { getBeforeLoadAuthGuard } from "@/auth/auth.state";
 import { CurrentUserInfo } from "@/components/CurrentUserInfo";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile")({
   component: RouteComponent,
-  beforeLoad: () => useAuth.getState().loadProfile(),
+  beforeLoad: getBeforeLoadAuthGuard(),
 });
 
 function RouteComponent() {

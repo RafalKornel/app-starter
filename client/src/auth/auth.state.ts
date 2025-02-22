@@ -35,3 +35,5 @@ export const useAuth = create<AuthStore>((set, get) => ({
       });
   },
 }));
+
+export const getBeforeLoadAuthGuard = () => useAuth.getState().loadProfile;
