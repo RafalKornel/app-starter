@@ -6,7 +6,7 @@ export interface LoginBody {
 }
 
 export interface LoginResponse {
-  access_token: string;
+  accessToken: string;
 }
 
 export interface RegisterBody {
@@ -21,8 +21,46 @@ export interface RegisterResponse {
 }
 
 class AuthApi extends ApiClient {
+  private refreshInterval: NodeJS.Timeout | undefined;
+  private accessTokenTimeInS: number;
+
+  constructor() {
+    super();
+
+    this.accessTokenTimeInS = import.meta.env.VITE_APP_ACCESS_TOKEN_TIME || 600;
+  }
+
   public async login(body: LoginBody) {
-    return this.fetch<LoginResponse, LoginBody>("/auth/login", "POST", body);
+    const { accessToken } = await this.fetch<LoginResponse, LoginBody>(
+      "/auth/login",
+      "POST",
+      body
+    );
+
+    this.setAccessToken(accessToken);
+
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+
+    this.refreshInterval = setInterval(() => {
+      this.refreshToken();
+    }, this.accessTokenTimeInS * 1000);
+  }
+
+  public async refreshToken() {
+    try {
+      const { accessToken } = await this.fetch(
+        "/auth/refresh-access-token",
+        "POST"
+      );
+
+      // if ()
+
+      this.setAccessToken(accessToken);
+    } catch (e) {
+      // handle error
+    }
   }
 
   public async register(body: RegisterBody) {
@@ -31,6 +69,10 @@ class AuthApi extends ApiClient {
       "POST",
       body
     );
+  }
+
+  public async getProfile() {
+    return this.fetch("/auth/profile", "GET");
   }
 }
 

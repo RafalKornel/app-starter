@@ -9,6 +9,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
+import { authApi } from "@/services/auth.api";
 
 export function LoginPage() {
   return (
@@ -44,6 +45,7 @@ export function LoginPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          <Button onClick={() => authApi.getProfile()}>Fetch profile</Button>
         </div>
       </div>
       <div className="flex- text-center hidden lg:flex">

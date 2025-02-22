@@ -7,6 +7,8 @@ export interface ApiError {
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export class ApiClient {
+  private static ACCESS_TOKEN_LOCALSTORAGE_KEY = "accessToken";
+
   private readonly url: string;
 
   constructor() {
@@ -25,7 +27,11 @@ export class ApiClient {
       body: JSON.stringify(body),
       headers: {
         "Content-type": "application/json",
+        ...(this.accessToken
+          ? { Authorization: "Bearer " + this.accessToken }
+          : {}),
       },
+      credentials: "include",
     });
 
     const json: TResponse = await res.json();
@@ -35,5 +41,13 @@ export class ApiClient {
     }
 
     return json;
+  }
+
+  get accessToken(): string | null {
+    return localStorage.getItem(ApiClient.ACCESS_TOKEN_LOCALSTORAGE_KEY);
+  }
+
+  protected setAccessToken(token: string) {
+    localStorage.setItem(ApiClient.ACCESS_TOKEN_LOCALSTORAGE_KEY, token);
   }
 }

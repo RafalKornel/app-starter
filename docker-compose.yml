@@ -56,6 +56,8 @@ services:
       NODE_ENV: ${MODE}
       VITE_APP_API_HOST: localhost
       VITE_APP_API_PORT: ${API_PORT}
+    env_file:
+      - .env.client
     volumes:
       - ./client:/app
       - /app/node_modules # TODO: change to anonymous volume when doing prod
