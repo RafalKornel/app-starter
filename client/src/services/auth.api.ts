@@ -5,8 +5,16 @@ export interface LoginBody {
   password: string;
 }
 
+export interface Profile {
+  id: number;
+  email: string;
+  username: string;
+  avatar?: string;
+}
+
 export interface LoginResponse {
   accessToken: string;
+  profile: Profile;
 }
 
 export interface RegisterBody {
@@ -31,13 +39,13 @@ class AuthApi extends ApiClient {
   }
 
   public async login(body: LoginBody) {
-    const { accessToken } = await this.fetch<LoginResponse, LoginBody>(
+    const response = await this.fetch<LoginResponse, LoginBody>(
       "/auth/login",
       "POST",
       body
     );
 
-    this.setAccessToken(accessToken);
+    this.setAccessToken(response.accessToken);
 
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
@@ -46,6 +54,14 @@ class AuthApi extends ApiClient {
     this.refreshInterval = setInterval(() => {
       this.refreshToken();
     }, this.accessTokenTimeInS * 1000);
+
+    return response;
+  }
+
+  public async logout() {
+    await this.fetch("/auth/logout", "POST");
+
+    this.clearToken();
   }
 
   public async refreshToken() {
@@ -72,7 +88,9 @@ class AuthApi extends ApiClient {
   }
 
   public async getProfile() {
-    return this.fetch("/auth/profile", "GET");
+    return this.fetch<Profile>("/auth/profile", "GET").catch((e) => {
+      console.log(e);
+    });
   }
 }
 

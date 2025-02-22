@@ -27,7 +27,7 @@ services:
       - "${API_PORT}:${API_PORT}"
     volumes:
       - ./api:/app
-      - /app/node_modules # TODO: change to anonymous volume when doing prod
+      - /app/node_modules 
     depends_on:
       - postgres
 
@@ -60,7 +60,7 @@ services:
       - .env.client
     volumes:
       - ./client:/app
-      - /app/node_modules # TODO: change to anonymous volume when doing prod
+      - /app/node_modules 
     depends_on:
       - api
     ports:

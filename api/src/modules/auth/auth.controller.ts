@@ -2,25 +2,22 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Post,
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { RegisterDto } from './dto/register.dto';
-import { AuthGuard } from './guards/auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { Public } from './decorators/public.decorator';
 import { MailerFacade } from 'src/shared/modules/mailer/mailer.facade';
 import { EnvironmentConfig } from 'src/config/config.types';
 import { RefreshTokenRevokedError } from './errors/refresh-token-revoked.error';
+import { UserEntity } from 'src/database/entities/user.entity';
+import { ProfileFactory } from './factories/profile.factory';
 
 @Controller('auth')
 export class AuthController {
@@ -36,7 +33,7 @@ export class AuthController {
     @Body() signInDto: SignInDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken } = await this.authService.signIn(
+    const { accessToken, refreshToken, user } = await this.authService.signIn(
       signInDto.email,
       signInDto.password,
     );
@@ -50,7 +47,19 @@ export class AuthController {
       secure: true,
     });
 
-    return { accessToken };
+    const profile = ProfileFactory.userToProfileDto(user);
+
+    return { accessToken, profile };
+  }
+
+  @Post('logout')
+  async logOut(
+    @CurrentUser() user: UserEntity,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logout(user.id);
+
+    res.clearCookie(this.config.REFRESH_COOKIE);
   }
 
   @Public()
@@ -81,8 +90,8 @@ export class AuthController {
   }
 
   @Get('profile')
-  async getProfile(@CurrentUser() user: JwtPayload, @Req() req: Request) {
-    return user;
+  async getProfile(@CurrentUser() user: UserEntity) {
+    return ProfileFactory.userToProfileDto(user);
   }
 
   @Public()

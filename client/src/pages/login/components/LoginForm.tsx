@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
-import { useLogIn } from "../hooks/useLogIn";
+import { useLogIn } from "../../../auth/hooks/useLogIn";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -22,7 +22,7 @@ const FormSchema = z.object({
 });
 
 export function LoginForm() {
-  const logInMutation = useLogIn();
+  const { handleLogin, isPending } = useLogIn();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -33,12 +33,8 @@ export function LoginForm() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    logInMutation
-      .mutateAsync(data)
-      .then((res) => {
-        console.log(res.access_token);
-        localStorage.setItem("access_token", res.access_token);
-      })
+    handleLogin(data.email, data.password)
+      .then(() => toast("Success", { description: "Successfully logged in." }))
       .catch((e) => {
         console.log("caught error: ", e);
 
@@ -80,7 +76,7 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={logInMutation.isPending}>
+        <Button type="submit" disabled={isPending}>
           Log In
         </Button>
       </form>

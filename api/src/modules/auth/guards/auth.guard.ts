@@ -9,6 +9,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { EnvironmentConfig } from 'src/config/config.types';
+import { AuthService } from '../auth.service';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -16,6 +18,7 @@ export class AuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly config: EnvironmentConfig,
     private readonly reflector: Reflector,
+    private readonly authService: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -37,12 +40,18 @@ export class AuthGuard implements CanActivate {
     }
 
     const payload = await this.jwtService
-      .verifyAsync(token, { secret: this.config.JWT_ACCESS_SECRET })
+      .verifyAsync<JwtPayload>(token, { secret: this.config.JWT_ACCESS_SECRET })
       .catch((e) => {
         throw new UnauthorizedException();
       });
 
-    request['user'] = payload;
+    const profile = await this.authService.getProfile(payload.sub);
+
+    if (!profile) {
+      throw new Error(`User not found for jwt sub ${payload.sub}`);
+    }
+
+    request['user'] = profile;
 
     return true;
   }

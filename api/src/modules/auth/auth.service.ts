@@ -22,6 +22,10 @@ export class AuthService {
     private readonly entityManager: EntityManager,
   ) {}
 
+  public async getProfile(id: number) {
+    return await this.entityManager.findOneBy(UserEntity, { id });
+  }
+
   public async signIn(email: string, password: string) {
     const user = await this.entityManager.getRepository(UserEntity).findOne({
       where: { email },
@@ -57,7 +61,7 @@ export class AuthService {
 
     await this.entityManager.getRepository(AuthEntity).save(user.auth);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, user };
   }
 
   public async logout(userId: number) {
